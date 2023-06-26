@@ -21,6 +21,9 @@ function _draw()
  	--p.x,p.y
  	camera(p.x - 56, p.y - 80)
 	 spr(p.sprite,p.x,p.y,2,2,not p.dir,false)
+	 if btnp(❎) then
+	 		spr(010,p.x,p.y,2,2,not p.dir,false) 
+  end
 end
 
 function make_player()
@@ -135,7 +138,7 @@ function move_player()
     		p.sprite = 038--jump frame
     		p.jump = true
   		end
-    end
+  end
 end
 __gfx__
 0000000064404564bbbbbbbb000000000000000055555555c7c77cc71cccc1cc00000000067700000000000000000000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
