@@ -1,5 +1,5 @@
 pico-8 cartridge // http://www.pico-8.com
-version 41
+version 38
 __lua__
 function _init()
 	make_player()
@@ -21,6 +21,7 @@ function _draw()
  	--p.x,p.y
  	camera(p.x - 56, p.y - 80)
 	 spr(p.sprite,p.x,p.y,2,2,not p.dir,false)
+	 
 	 if btnp(❎) then
 	 		spr(010,p.x,p.y,2,2,not p.dir,false) 
   end
@@ -34,8 +35,8 @@ function make_player()
  	p.clm = p.x/8	 --collumn
  	p.row = p.y/8  --row
 
- 	p.gnd	 = true 	--on ground?
- 	p.dir	 = true		--true = >>>
+ 	--p.gnd	 = true 	--on ground?
+ 	p.dir	 = true		--direction true = >>>
  	p.runfrm  = 0		--run anim sprites
 	 p.dash = false	--am i dashin
 	 p.jump = false	--am i jumpin
