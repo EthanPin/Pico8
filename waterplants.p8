@@ -7,6 +7,17 @@ end
 
 function _update()
 	move_player()
+	--bullet handeling
+	if(btnp(❎)) newbullet(p.x,p.y,4,4,2,0)
+ local i,j=1,1               --to properly support objects being deleted, can't use del() or deli()
+ while(objs[i]) do           --if we used a for loop, adding new objects in object updates would break
+  if objs[i]:update() then
+   if(i!=j) objs[j]=objs[i] objs[i]=nil --shift objects if necessary
+   j+=1
+  else objs[i]=nil end       --remove objects that have died or timed out
+  i+=1                       --go to the next object (including just added objects)
+ end
+ --end bullet handeling
 end
 
 function _draw()
@@ -22,9 +33,7 @@ function _draw()
  	camera(p.x - 56, p.y - 80)
 	 spr(p.sprite,p.x,p.y,2,2,not p.dir,false)
 	 
-	 if btnp(❎) then
-	 		spr(010,p.x,p.y,2,2,not p.dir,false) 
-  end
+  for o in all(objs) do o:draw() end
 end
 
 function make_player()
@@ -143,6 +152,30 @@ function move_player()
   		end
   end
 end
+-->8
+objs = {}                    --a list of all the objects in the game (starts empty)
+function objdraw(o)          --a basic function for drawing objects,
+ spr(o.spr,o.x,o.y)            --as long as those objects have spr, x, and y values inside
+end
+function bulletupdate(b)     --a function for moving bullets a little bit at a time
+ b.x += b.dx                 --x moves by the change in x every frame (dx)
+ b.y += b.dy                 --y moves by the change in y every frame (dy)
+ b.time -= 1                 --if bullets have existed for too long, erase them
+ return b.time > 0           --returns true if still alive, false if it needs to be removed
+end
+function newbullet(x,y,w,h,dx,dy)--bullets have position x,y, width, height, and move dx,dy each frame
+ local b = {                 --only use the b table inside this function, it's "local" to it
+  x=x,y=y,dx=dx,dy=dy,       --the x=x means let b.x = the value stored in newbullet()'s x variable
+  w=w,h=h,                   --b.w and b.h are also set to the function's w and h args
+  time=60,                   --this is how long a bullet will last before disappearing
+  update=bulletupdate,       --you can put functions in tables just like any other value
+  spr=010,draw=objdraw         --bullets don't have special drawing code, so re-use a basic object draw
+ }
+ add(objs,b)                 --now we can manage all bullets in a list
+ return b                    --and if some are special, we can adjust them a bit outside of this function
+end
+
+
 __gfx__
 0000000064404564bbbbbbbb000000000000000055555555c7c77cc71cccc1cc00000000067700000000000000000000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
 0000000004046445333bb333000000000000000066766666cccccccccc1ccc1c0000000000760676000000c000000c00eeeeeee333eeeeeeeeeeeee333eeeeee
