@@ -1,5 +1,5 @@
 pico-8 cartridge // http://www.pico-8.com
-version 41
+version 38
 __lua__
 function _init()
 	make_player()
@@ -8,8 +8,14 @@ end
 function _update()
 	 move_player()
 	 --bullet handeling
-	 if(btnp(❎) and p.dir) newbullet(p.x+14,p.y+8,4,4,2,0.1,not p.dir)  --sets bullet start
-  if(btnp(❎) and not p.dir)  newbullet(p.x-6,p.y+8,4,4,-2,0.1,not p.dir)  --sets bullet physics & start
+	 if(btnp(❎) and p.dir) then 
+	   newbullet(p.x+12,p.y+8,4,4,2,0.1,not p.dir)  --sets bullet start
+    sfx(0,-1,4,1) 
+  end
+  if(btnp(❎) and not p.dir) then
+    newbullet(p.x-4,p.y+8,4,4,-2,0.1,not p.dir)  --sets bullet physics & start
+    sfx(0,-1,4,1)
+  end
   local i,j=1,1               --to properly support objects being deleted, can't use del() or deli()
   while(objs[i]) do           --if we used a for loop, adding new objects in object updates would break
     if objs[i]:update() then
@@ -126,7 +132,7 @@ function move_player()
 	 		    (fget(mget(((p.x+3)/8),((p.y)/8))) == 001) then
   				  p.rise -= 10
   				  p.sprite = 036
-  				  sfx(0,-1,3,4)
+  				  sfx(0,-1,2,2)
   				--you are holding jump
   				else
   				  p.rise -= 1
@@ -173,6 +179,7 @@ function bulletupdate(b)     --a function for moving bullets a little bit at a t
   if (fget(mget(((b.x)/8),((b.y)/8))) >= 002) then
     b.spr = 011
     mset(b.x/8,b.y/8,009) --changes sappling to a flower
+    sfx(0,-1,5,4)
   end
   return b.time > 0           --returns true if still alive, false if it needs to be removed
 end
@@ -275,4 +282,4 @@ __map__
 0500000000000000010001010101010101010100000000000500000000000000000000000000050500000005000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000505000000
 0500000000000000000100000000000000000000000000050500000000000000000000000000000500000005000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000050500000000
 __sfx__
-000700002f520325203b5200b7500375005200092000060016700036001b0002600029000047002b5001a50032500187001e7002070032700233000470025400274002840029400294003c400000000000000000
+000700000a020110200b73003730126101115015150181501d150181001d100241001d100003001b7001e60024600187001e7002070032700233000470025400274002840029400294003c400000000000000000
