@@ -100,16 +100,32 @@ end
 function walk()
   --use  <= instead of ==
 		if (p.runfrm >= 9 and p.runfrm < 12) then
-		  p.sprite = 044
+		  if (btn(⬆️)) then
+		    p.sprite = 076 --looking up
+		  else
+		    p.sprite = 044 --normal
+		  end
 		  p.runfrm = 0
 		elseif (p.runfrm >= 6 and p.runfrm < 9) then
-		  p.sprite = 046
+		  if (btn(⬆️)) then
+		    p.sprite = 078
+		  else
+		    p.sprite = 046
+		  end
 		  p.runfrm += 1
 		elseif (p.runfrm >= 3 and p.runfrm < 6) then
-		  p.sprite = 044
+		  if (btn(⬆️)) then
+		    p.sprite = 076
+		  else
+		    p.sprite = 044
+		  end
 		  p.runfrm += 1
 		else
-    p.sprite = 042
+    if (btn(⬆️)) then
+		    p.sprite = 074
+		  else
+      p.sprite = 042
+    end
     p.runfrm += 1
   end
 end
@@ -118,7 +134,7 @@ function move_player()
 	 --depending on which buttons
 	 --are pressed
 	 --left
- 	if (btn(⬅️)) then
+ 	if (btn(⬅️) and not btn(➡️)) then
 		--get the tile and check the flag to the left
 		  if --(fget(mget(((p.x-1)/8),((p.y)/8))) != 001) and
 		    (fget(mget(((p.x-1)/8),((p.y-1)/8)+1)) != 001) and
@@ -132,7 +148,7 @@ function move_player()
 		  if (not btn(❎)) then p.dir = false end
 	 end --left
 	 --right
-	 if (btn(➡️)) then
+	 if (btn(➡️) and not btn(⬅️)) then
 		  --get the tile and check the flag 2 tiles 2 the right
 		  if --(fget(mget((p.x/8)+2,((p.y)/8))) != 001) and
 		  		(fget(mget((p.x/8)+2,((p.y-1)/8)+1)) != 001) and
@@ -145,16 +161,10 @@ function move_player()
 		  p.clm = p.x/8  --update player collumn
 		  if (not btn(❎)) then p.dir = true end
 	 end --right
-	 --dash	
-	 if (btnp(🅾️) and btn(⬇️)) then --not jump
-		  if (p.dir) then --check direction
-			   p.x+=6
-			   p.dash = true
-		  else
-			   p.x-=6
-			   p.dash = true
-		  end
-	 end --dash
+	 --both l+r directions
+	 if (btn(➡️) and btn(⬅️)) then
+	 		walk()
+	 end --both l+r directions
 	 --gravity
 	 --if in the air
 	 if (fget(mget(((p.x-1)/8)+2,((p.y)/8)+2)) != 001) and --in air
@@ -173,19 +183,35 @@ function move_player()
   				else
   				  p.rise -= 1
   				  p.y -= 1
-  				  p.sprite = 038
+  				  if (btn(⬆️)) then
+		        p.sprite = 072 --looking up
+		      elseif (btn(⬇️)) then
+		        p.sprite = 102 --looking up
+		      else
+  				    p.sprite = 038
+  				  end
   				end
   		--then you are just falling		
   		else 
   				p.y += 1
   				p.rise = 0
-  				p.sprite = 040
+  				if (btn(⬆️)) then
+		      p.sprite = 070 --looking up
+		    elseif (btn(⬇️)) then
+		      p.sprite = 104 --looking down
+		    else
+  				  p.sprite = 040
+  			 end
   		end
 		--if on ground		
 		else 
 				--standing still
 				if (not btn(➡️) and not btn(⬅️)) then
-						p.sprite = 032
+						if (btn(⬆️)) then
+		      p.sprite = 064 --looking up
+		    else
+						  p.sprite = 032
+						end
 				end
 				--start jump
 				if (btnp(🅾️) and not btn(⬇️)) then
