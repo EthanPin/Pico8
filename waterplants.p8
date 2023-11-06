@@ -1,5 +1,5 @@
 pico-8 cartridge // http://www.pico-8.com
-version 41
+version 38
 __lua__
 function _init()
 	make_player()
@@ -16,25 +16,39 @@ function _update()
 	 --bullet handeling
 	 --
 	 --
-	 --needs upward and downward shooting
+	 --bullet push needs fixing
 	 --
 	 --
-	 if (shots < 20) then
-	   if(btnp(❎) and p.dir) then 
-	     newbullet(p.x+12,p.y+8,4,4,2,0.1,not p.dir)  --sets bullet start
+	 if (shots < 20) then --if you have ammo
+	   if (btnp(❎) and p.dir) then
+	     if (p.aim == 1) then --aim up
+	       newbullet(p.x+4,p.y+2,4,4,0.3,-2,not p.dir)  --sets bullet start
+      elseif (p.aim == 2) then --aim down
+        newbullet(p.x+4,p.y+14,4,4,0.3,2,not p.dir)  --sets bullet start
+        --p.y -= 1 --bullet push
+      else --p.aim is 0 
+        newbullet(p.x+8,p.y+8,4,4,2,0.1,not p.dir)  --sets bullet start
+      end
       sfx(0,-1,4,1) 
       shots += 1
     end
-    if(btnp(❎) and not p.dir) then
-      newbullet(p.x-4,p.y+8,4,4,-2,0.1,not p.dir)  --sets bullet physics & start
+    if (btnp(❎) and not p.dir) then
+      if (p.aim == 1) then --aim up
+	       newbullet(p.x+4,p.y+2,4,4,-0.3,-2,not p.dir)  --sets bullet start
+      elseif (p.aim == 2) then --aim down
+        newbullet(p.x+4,p.y+14,4,4,-0.3,2,not p.dir)  --sets bullet start
+        --p.y -= 1 --bullet push
+      else --p.aim is 0
+        newbullet(p.x,p.y+8,4,4,-2,0.1,not p.dir)  --sets bullet physics & start
+      end
       sfx(0,-1,4,1)
       shots += 1
     end
   end
   local i,j=1,1               --to properly support objects being deleted, can't use del() or deli()
-  while(objs[i]) do           --if we used a for loop, adding new objects in object updates would break
+  while (objs[i]) do           --if we used a for loop, adding new objects in object updates would break
     if objs[i]:update() then
-      if(i!=j) objs[j]=objs[i] objs[i]=nil --shift objects if necessary
+      if (i!=j) objs[j]=objs[i] objs[i]=nil --shift objects if necessary
       j+=1
     else objs[i]=nil end       --remove objects that have died or timed out
     i+=1                       --go to the next object (including just added objects)
@@ -93,6 +107,9 @@ function make_player()
 	 p.dash = false	--am i dashin
 	 p.jump = false	--am i jumpin
 	 p.rise = 30				--jmp distance
+  
+  --0 horizontal, 1 up, 2 down
+  p.aim = 0      --aim direction
 
 	 p.sprite=032 --player sprite
 end
@@ -102,29 +119,37 @@ function walk()
 		if (p.runfrm >= 9 and p.runfrm < 12) then
 		  if (btn(⬆️)) then
 		    p.sprite = 076 --looking up
+		    p.aim = 1      --aim up
 		  else
 		    p.sprite = 044 --normal
+		    p.aim = 0      --reset aim
 		  end
 		  p.runfrm = 0
 		elseif (p.runfrm >= 6 and p.runfrm < 9) then
 		  if (btn(⬆️)) then
 		    p.sprite = 078
+		    p.aim = 1
 		  else
 		    p.sprite = 046
+		    p.aim = 0
 		  end
 		  p.runfrm += 1
 		elseif (p.runfrm >= 3 and p.runfrm < 6) then
 		  if (btn(⬆️)) then
 		    p.sprite = 076
+		    p.aim = 1
 		  else
 		    p.sprite = 044
+		    p.aim = 0
 		  end
 		  p.runfrm += 1
 		else
     if (btn(⬆️)) then
 		    p.sprite = 074
+		    p.aim = 1
 		  else
       p.sprite = 042
+      p.aim = 0
     end
     p.runfrm += 1
   end
@@ -133,6 +158,7 @@ end
 function move_player()
 	 --depending on which buttons
 	 --are pressed
+
 	 --left
  	if (btn(⬅️) and not btn(➡️)) then
 		--get the tile and check the flag to the left
@@ -165,19 +191,20 @@ function move_player()
 	 if (btn(➡️) and btn(⬅️)) then
 	 		walk()
 	 end --both l+r directions
+	 
 	 --gravity
 	 --if in the air
 	 if (fget(mget(((p.x-1)/8)+2,((p.y)/8)+2)) != 001) and --in air
 	 		(fget(mget(((p.x-1)/8)+1,((p.y)/8)+2)) != 001) and --in air
 	 		(fget(mget(((p.x)/8),((p.y)/8)+2)) != 001) then --in air
 				--holding jump
-				if (btn(🅾️) and not btn(⬇️) and p.rise > 0) then
+				if (btn(🅾️) and p.rise > 0) then
   				--if you hit the ceiling
   				if (fget(mget(((p.x-3)/8)+2,((p.y)/8))) == 001) or --ceiling
 	 		    (fget(mget(((p.x-1)/8)+1,((p.y)/8))) == 001) or --ceiling
 	 		    (fget(mget(((p.x+3)/8),((p.y)/8))) == 001) then
-  				  p.rise -= 10
-  				  p.sprite = 036
+  				  p.rise -= 5 --hit head penalty
+  				  p.sprite = 036 --ouch sprite
   				  sfx(0,-1,2,2)
   				--you are holding jump
   				else
@@ -185,10 +212,13 @@ function move_player()
   				  p.y -= 1
   				  if (btn(⬆️)) then
 		        p.sprite = 072 --looking up
+		        p.aim = 1
 		      elseif (btn(⬇️)) then
 		        p.sprite = 102 --looking up
+		        p.aim = 2
 		      else
   				    p.sprite = 038
+  				    p.aim = 0
   				  end
   				end
   		--then you are just falling		
@@ -197,10 +227,13 @@ function move_player()
   				p.rise = 0
   				if (btn(⬆️)) then
 		      p.sprite = 070 --looking up
+		      p.aim = 1
 		    elseif (btn(⬇️)) then
 		      p.sprite = 104 --looking down
+		      p.aim = 2
 		    else
   				  p.sprite = 040
+  				  p.aim = 0
   			 end
   		end
 		--if on ground		
@@ -209,12 +242,14 @@ function move_player()
 				if (not btn(➡️) and not btn(⬅️)) then
 						if (btn(⬆️)) then
 		      p.sprite = 064 --looking up
+		      p.aim = 1
 		    else
 						  p.sprite = 032
+						  p.aim = 0
 						end
 				end
 				--start jump
-				if (btnp(🅾️) and not btn(⬇️)) then
+				if (btnp(🅾️)) then
     		p.rise = 30
     		p.y -= 2
     		p.sprite = 038--jump frame
@@ -265,12 +300,12 @@ end
 
 
 __gfx__
-0000000064404564bbbbbbbb000000007776000755555555c7c77cc7000000000000000006a70000000000c000000000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+0000000064404564bbbbbbbb000000007776000755555555c7c77cc7000000000000000006a700000c0000c000000000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
 0000000004046445333bb333000000000070060066766666cccccccc0000000000000000007606760000c00000000c00eeeeeee333eeeeeeeeeeeee333eeeeee
-007007004454404463333337000000000600766766666767cccccccc00000000000000007706a6a70c11cccccccc0000eee33337773eeeeeeee33337773eeeee
-00077000646464545f3333f6000000000006007067666666cccc7ccc0000000000676000a60030670c0cccc001c1ccc0ee3777377703eeeeee3777377073eeee
-0007700046540540f6ff6f5f000000006660770066676666cc7ccccc00000000007a70007a7030000000c0000cccc1c0e37770377773eeeee37770377773eeee
-0070070050446454f65f76f6000000000070700067666676cccccccc00077000006bb0000000300000c00000c1cc0000ee37777377733eeeee37777377733eee
+007007004454404463333337000000000600766766666767cccccccc00000000000000007706a6a70cc1cc00cccc0000eee33337773eeeeeeee33337773eeeee
+00077000646464545f3333f6000000000006007067666666cccc7ccc0000000000676000a600306700cc1c0001c1ccc0ee3777377703eeeeee3777377073eeee
+0007700046540540f6ff6f5f000000006660770066676666cc7ccccc00000000007a70007a7030000c00c0000cccc1c0e37770377773eeeee37770377773eeee
+0070070050446454f65f76f6000000000070700067666676cccccccc00077000006bb0000000300000c000c0c1cc0000ee37777377733eeeee37777377733eee
 00000000446054647ffff5f5000000000077070766676666cccccc7c077cc7700003300000033000000000000c0000c0ee33777333333eeeee33777333333eee
 00000000445446405f7f6f7f000000007000000755555555cccccccc77cccc770000b00000033000000000000000c000eee33333333333eeeee33333333333ee
 2e3333ee0033330000333300003333000033330000333300000000000000000000000000800800080000000001101710eeee333333333333eeee333333333333
